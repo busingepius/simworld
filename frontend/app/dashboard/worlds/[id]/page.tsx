@@ -1,12 +1,24 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { WorldResponse, AgentPersonaResponse, SimulationRunResponse, ReportResponse } from '@/lib/types';
+import { 
+  ArrowLeftIcon, 
+  CloudArrowUpIcon, 
+  CpuChipIcon, 
+  PlayIcon,
+  DocumentChartBarIcon,
+  UserGroupIcon,
+  DocumentTextIcon,
+  BeakerIcon,
+  ChartBarIcon
+} from '@heroicons/react/24/outline';
 
 export default function WorldDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const worldId = params.id as string;
 
   const [world, setWorld] = useState<WorldResponse | null>(null);
@@ -38,7 +50,6 @@ export default function WorldDetailPage() {
       setReports(r);
     } catch (err: any) {
       console.error(err);
-      alert('Failed to load world data');
     } finally {
       setLoading(false);
     }
@@ -50,7 +61,7 @@ export default function WorldDetailPage() {
     setIsUploading(true);
     try {
       await api.uploadSeedMaterial(worldId, seedFile);
-      alert('Seed material uploaded and is processing via Celery!');
+      alert('Seed material uploaded and is processing!');
       setSeedFile(null);
     } catch (err: any) {
       alert(err.message);
@@ -63,7 +74,6 @@ export default function WorldDetailPage() {
     setIsGenerating(true);
     try {
       await api.generateAgents(worldId, 5);
-      alert('Agents generated!');
       fetchData();
     } catch (err: any) {
       alert(err.message);
@@ -79,112 +89,268 @@ export default function WorldDetailPage() {
         platform_config: {},
         scenario_id: null
       });
-      alert('Simulation queued!');
       fetchData();
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (!world) return <div className="p-4 text-red-500">World not found.</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+    </div>
+  );
+
+  if (!world) return (
+    <div className="text-center py-24">
+      <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">World not found</h3>
+      <p className="mt-1 text-sm text-gray-500">The world you're looking for doesn't exist or you don't have access.</p>
+      <div className="mt-6">
+        <button onClick={() => router.push('/dashboard')} className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+          <ArrowLeftIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow p-6 rounded-lg">
-        <h1 className="text-3xl font-bold dark:text-white">{world.name}</h1>
-        <p className="text-gray-500 mt-2">Domain: {world.domain} | Status: {world.status}</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-[#111827] shadow-sm border border-gray-200 dark:border-gray-800 p-6 rounded-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl"></div>
+        <div className="relative z-10 flex items-center gap-4">
+          <button 
+            onClick={() => router.push('/dashboard')}
+            className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
+              {world.name}
+              <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+                world.status === 'active' 
+                  ? 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20' 
+                  : 'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20'
+              }`}>
+                {world.status}
+              </span>
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1.5">
+              <span className="font-medium text-gray-700 dark:text-gray-300">Domain:</span> {world.domain}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         
         {/* Knowledge Base */}
-        <div className="bg-white dark:bg-gray-800 shadow p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4 dark:text-white">Knowledge Base (Seed Material)</h2>
-          <form onSubmit={handleSeedUpload} className="flex gap-4 items-center">
-            <input 
-              type="file" 
-              onChange={(e) => setSeedFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-            />
-            <button 
-              type="submit" 
-              disabled={!seedFile || isUploading}
-              className="bg-indigo-600 disabled:bg-gray-400 text-white px-4 py-2 rounded"
-            >
-              {isUploading ? 'Uploading...' : 'Upload'}
-            </button>
+        <div className="bg-white dark:bg-[#111827] shadow-sm border border-gray-200 dark:border-gray-800 p-6 sm:p-8 rounded-2xl flex flex-col">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
+              <DocumentTextIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Knowledge Base</h2>
+              <p className="text-sm text-gray-500">Upload source material to seed the world context</p>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSeedUpload} className="mt-auto">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <input 
+                  type="file" 
+                  id="file-upload"
+                  onChange={(e) => setSeedFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                <label 
+                  htmlFor="file-upload" 
+                  className="flex items-center justify-center w-full h-full min-h-[42px] px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-400 bg-gray-50/50 dark:bg-gray-800/30 text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors"
+                >
+                  <CloudArrowUpIcon className="w-5 h-5 mr-2 text-gray-400" />
+                  {seedFile ? seedFile.name : 'Choose a file'}
+                </label>
+              </div>
+              <button 
+                type="submit" 
+                disabled={!seedFile || isUploading}
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto w-full"
+              >
+                {isUploading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Uploading
+                  </>
+                ) : 'Upload Material'}
+              </button>
+            </div>
           </form>
         </div>
 
         {/* Agents */}
-        <div className="bg-white dark:bg-gray-800 shadow p-6 rounded-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold dark:text-white">Agents ({agents.length})</h2>
+        <div className="bg-white dark:bg-[#111827] shadow-sm border border-gray-200 dark:border-gray-800 p-6 sm:p-8 rounded-2xl flex flex-col h-[400px]">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded-xl">
+                <UserGroupIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  Agents
+                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
+                    {agents.length}
+                  </span>
+                </h2>
+                <p className="text-sm text-gray-500">Autonomous personas in this world</p>
+              </div>
+            </div>
             <button 
               onClick={handleGenerateAgents}
               disabled={isGenerating}
-              className="bg-green-600 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm"
+              className="inline-flex items-center justify-center rounded-xl bg-green-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isGenerating ? 'Generating...' : 'Generate AI Agents'}
+              <CpuChipIcon className="-ml-0.5 mr-1.5 h-4 w-4" />
+              {isGenerating ? 'Generating...' : 'Generate Agents'}
             </button>
           </div>
-          <div className="max-h-60 overflow-y-auto space-y-2">
+          
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
             {agents.map(agent => (
-              <div key={agent.id} className="p-3 border rounded dark:border-gray-700">
-                <span className="font-medium dark:text-white">{agent.name}</span>
-                <span className="text-xs ml-2 text-gray-500">Influence: {agent.influence_score}</span>
+              <div key={agent.id} className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-800/60 rounded-xl bg-gray-50/30 dark:bg-gray-800/20 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                    {agent.name.charAt(0)}
+                  </div>
+                  <span className="font-medium text-gray-900 dark:text-white">{agent.name}</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-700">
+                  <ChartBarIcon className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{agent.influence_score}</span>
+                </div>
               </div>
             ))}
-            {agents.length === 0 && <p className="text-gray-500">No agents yet.</p>}
+            {agents.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
+                <UserGroupIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-500">No agents have been generated yet.</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Simulations */}
-        <div className="bg-white dark:bg-gray-800 shadow p-6 rounded-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold dark:text-white">Simulations</h2>
+        <div className="bg-white dark:bg-[#111827] shadow-sm border border-gray-200 dark:border-gray-800 p-6 sm:p-8 rounded-2xl flex flex-col h-[400px]">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl">
+                <BeakerIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Simulations</h2>
+                <p className="text-sm text-gray-500">Run interaction scenarios</p>
+              </div>
+            </div>
             <button 
               onClick={handleRunSimulation}
               disabled={agents.length === 0}
-              className="bg-purple-600 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm"
+              className="inline-flex items-center justify-center rounded-xl bg-purple-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
+              <PlayIcon className="-ml-0.5 mr-1.5 h-4 w-4 group-disabled:opacity-50" />
               Run Simulation
             </button>
           </div>
-          <div className="space-y-2">
+          
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
             {simulations.map(sim => (
-              <div key={sim.id} className="p-3 border rounded flex justify-between dark:border-gray-700">
-                <span className="dark:text-white text-sm">ID: {sim.id.split('-')[0]}...</span>
-                <span className={`text-sm ${sim.status === 'complete' ? 'text-green-500' : sim.status === 'failed' ? 'text-red-500' : 'text-yellow-500'}`}>
+              <div key={sim.id} className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-800/60 rounded-xl bg-gray-50/30 dark:bg-gray-800/20">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
+                    ID: {sim.id.split('-')[0]}...
+                  </span>
+                </div>
+                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                  sim.status === 'complete' ? 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400' : 
+                  sim.status === 'failed' ? 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-500/10 dark:text-red-400' : 
+                  'bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-400'
+                }`}>
                   {sim.status}
                 </span>
               </div>
             ))}
-            {simulations.length === 0 && <p className="text-gray-500">No simulations run yet.</p>}
+            {simulations.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
+                <BeakerIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-500">No simulations run yet.</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Reports */}
-        <div className="bg-white dark:bg-gray-800 shadow p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4 dark:text-white">Reports</h2>
-          <div className="space-y-4">
+        <div className="bg-white dark:bg-[#111827] shadow-sm border border-gray-200 dark:border-gray-800 p-6 sm:p-8 rounded-2xl flex flex-col lg:col-span-2">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl">
+              <DocumentChartBarIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Analysis Reports</h2>
+              <p className="text-sm text-gray-500">Insights generated from simulation runs</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4">
             {reports.map(report => (
-              <div key={report.id} className="p-4 border rounded dark:border-gray-700">
-                <h3 className="font-medium dark:text-white">Confidence: {(report.confidence_score * 100).toFixed(1)}%</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{report.summary}</p>
-                <div className="mt-2">
+              <div key={report.id} className="p-5 sm:p-6 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-gray-800/30">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <ChartBarIcon className="w-5 h-5 text-indigo-500" />
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">Confidence Score</span>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
+                    report.confidence_score > 0.8 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                    report.confidence_score > 0.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                  }`}>
+                    {(report.confidence_score * 100).toFixed(1)}%
+                  </span>
+                </div>
+                
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                  {report.summary}
+                </p>
+                
+                <div className="space-y-3">
                   {report.sections.map((sec, idx) => (
-                    <details key={idx} className="mb-1">
-                      <summary className="cursor-pointer text-sm font-medium text-indigo-600">{sec.title}</summary>
-                      <p className="text-sm mt-1 text-gray-700 dark:text-gray-300 pl-4">{sec.content}</p>
+                    <details key={idx} className="group bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                      <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-gray-900 dark:text-white bg-gray-50/50 dark:bg-gray-800/50 group-open:bg-gray-100 dark:group-open:bg-gray-800 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-between">
+                        {sec.title}
+                        <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {sec.content}
+                        </p>
+                      </div>
                     </details>
                   ))}
                 </div>
               </div>
             ))}
-            {reports.length === 0 && <p className="text-gray-500">No reports generated yet.</p>}
+            {reports.length === 0 && (
+              <div className="flex flex-col items-center justify-center text-center p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
+                <DocumentChartBarIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">No reports available</h3>
+                <p className="mt-1 text-sm text-gray-500">Run simulations to generate insights and analysis.</p>
+              </div>
+            )}
           </div>
         </div>
 

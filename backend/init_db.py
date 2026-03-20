@@ -17,16 +17,8 @@ from models.calibration_entry import CalibrationEntry
 settings = get_settings()
 
 async def init_db():
-    print("Creating tables via SQLAlchemy...")
-    engine = create_async_engine(settings.DATABASE_URL, echo=False)
-    
-    async with engine.begin() as conn:
-        # Create all tables
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-        
-    print("Database initialization complete.")
-    await engine.dispose()
+    print("Database is managed by Alembic, bypassing direct SQLAlchemy create_all.")
+    pass
 
 if __name__ == "__main__":
     asyncio.run(init_db())

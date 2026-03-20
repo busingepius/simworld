@@ -6,7 +6,7 @@ from datetime import datetime
 class AgentPersonaBase(BaseModel):
     name: str
     personality: Dict[str, Any]
-    stance: Dict[str, Any]
+    stance: List[Dict[str, Any]]
     influence_score: float
 
 class AgentPersonaCreate(AgentPersonaBase):
@@ -15,7 +15,7 @@ class AgentPersonaCreate(AgentPersonaBase):
 class AgentPersonaUpdate(BaseModel):
     name: Optional[str] = None
     personality: Optional[Dict[str, Any]] = None
-    stance: Optional[Dict[str, Any]] = None
+    stance: Optional[List[Dict[str, Any]]] = None
     influence_score: Optional[float] = None
     is_active: Optional[bool] = None
 

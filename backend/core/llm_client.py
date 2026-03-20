@@ -39,7 +39,8 @@ async def complete(
 
     headers = {
         "Authorization": f"Bearer {settings.LLM_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
     }
 
     url = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
@@ -89,6 +90,7 @@ async def complete_structured(
     response_schema: Type[T],
     system: Optional[str] = None,
     context_id: Optional[str] = None,
+    max_tokens: int = 8192,
 ) -> T:
     """
     Generate a structured completion conforming to a Pydantic model.
@@ -106,7 +108,8 @@ async def complete_structured(
         prompt=prompt,
         system=system_instruction,
         temperature=0.0,
-        context_id=context_id
+        context_id=context_id,
+        max_tokens=max_tokens
     )
     
     try:

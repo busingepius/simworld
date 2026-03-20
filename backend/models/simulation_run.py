@@ -12,7 +12,7 @@ class SimulationRun(TenantBase):
 
     org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organisations.id", ondelete="CASCADE"), nullable=False)
     world_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("worlds.id", ondelete="CASCADE"), nullable=False)
-    scenario_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("scenarios.id", ondelete="SET NULL"), nullable=True)
+    scenario_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("scenarios.id", ondelete="SET NULL", name="fk_sim_run_scenario", use_alter=True), nullable=True)
     
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="queued")
     rounds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

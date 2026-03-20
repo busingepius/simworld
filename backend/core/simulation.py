@@ -69,25 +69,21 @@ async def run_simulation(
             logger.info("simulation_round_started", run_id=str(run_id), round=current_round, context_id=context_id)
             round_log = f"--- ROUND {current_round} ---\n"
             
-            # For this MVP simulation wrapper, we have agents "react" to the current state of the world
-            # concurrently to save time, batching LLM calls.
-            tasks = []
-            for agent in agents:
-                prompt = _build_agent_prompt(agent, agent_states[agent.id], current_round)
-                system = f"You are {agent.name}. Roleplay your reaction based on your personality and stances. Be concise (1-2 sentences)."
-                
-                # We schedule the LLM calls concurrently
-                tasks.append(
-                    complete(
+            # Limit concurrency to avoid overwhelming the LLM rate limit.
+            semaphore = asyncio.Semaphore(3)
+
+            async def _call_agent(agent: AgentPersona):
+                async with semaphore:
+                    prompt = _build_agent_prompt(agent, agent_states[agent.id], current_round)
+                    system = f"You are {agent.name}. Roleplay your reaction based on your personality and stances. Be concise (1-2 sentences)."
+                    return await complete(
                         prompt=prompt,
                         system=system,
                         temperature=0.8,
                         context_id=context_id or str(run_id)
                     )
-                )
-            
-            # Await all agent reactions for this round
-            responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+            responses = await asyncio.gather(*[_call_agent(a) for a in agents], return_exceptions=True)
             
             for agent, response in zip(agents, responses):
                 if isinstance(response, Exception):

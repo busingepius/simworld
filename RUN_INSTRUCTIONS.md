@@ -1,6 +1,7 @@
 # SimWorld Platform - Setup & Run Instructions
 
 ## Prerequisites
+
 - **Docker & Docker Compose** (for PostgreSQL, Redis, and Neo4j)
 - **Python 3.12+**
 - **Node.js v18+ & npm** (for the Next.js Frontend)
@@ -26,7 +27,8 @@ From the root project directory, spin up the Docker containers:
 cd ~/development/projects/simworld
 docker-compose up -d
 ```
-*(This starts PostgreSQL 16, Redis 7, and Neo4j 5 in the background.)*
+
+_(This starts PostgreSQL 16, Redis 7, and Neo4j 5 in the background.)_
 
 ## 3. Initialize the Backend & Database
 
@@ -49,7 +51,8 @@ Keep the backend terminal open and start the FastAPI server:
 ```bash
 uvicorn api.main:app --reload --port 8000
 ```
-*(The API is now running at `http://localhost:8000/api`)*
+
+_(The API is now running at `http://localhost:8000/api`)_
 
 ## 5. Run the Celery Worker
 
@@ -72,25 +75,28 @@ cd ~/development/projects/simworld/frontend
 npm install
 npm run dev
 ```
-*(The frontend is now running at `http://localhost:3000`)*
+
+_(The frontend is now running at `http://localhost:3001`)_
 
 ---
 
 ## Testing it Out
 
 1. **Create an Organization:** Before logging in, you need an organization in the database. I've created a script to do this for you:
+
    ```bash
    cd ~/development/projects/simworld
    source backend/.venv/bin/activate
    python demo.py
    ```
-   *(This will create "Acme Corp" in your database).*
 
-2. **Login:** Go to `http://localhost:3000/login` and log in with:
+   _(This will create "Acme Corp" in your database)._
+
+2. **Login:** Go to `http://localhost:3001/login` and log in with:
    - **Username:** `Acme Corp`
-   - **Password:** *(any password works for this demo environment)*
+   - **Password:** _(any password works for this demo environment)_
 
-3. **Use the Platform:** 
+3. **Use the Platform:**
    - Create a World.
    - Upload a text file as "Seed Material" to build your knowledge graph.
    - Click "Generate AI Agents" to populate your world.

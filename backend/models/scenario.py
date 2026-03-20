@@ -15,4 +15,4 @@ class Scenario(TenantBase):
     description: Mapped[str] = mapped_column(String, nullable=False)
     strength: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     target_agent_ids: Mapped[list[uuid.UUID]] = mapped_column(ARRAY(UUID(as_uuid=True)), nullable=False, default=list)
-    linked_run_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("simulation_runs.id", ondelete="SET NULL"), nullable=True)
+    linked_run_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("simulation_runs.id", ondelete="SET NULL", name="fk_scenario_sim_run"), nullable=True)
