@@ -48,7 +48,7 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
 
   // If we're passing FormData (like for file uploads), remove Content-Type 
   // so the browser sets the correct multipart boundary automatically
-  if (options.body instanceof FormData) {
+  if (options.body && typeof (options.body as any).append === 'function') {
     delete (headers as Record<string, string>)['Content-Type'];
   }
 

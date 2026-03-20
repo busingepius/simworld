@@ -29,6 +29,7 @@ export default function WorldDetailPage() {
   
   const [seedFile, setSeedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -59,10 +60,15 @@ export default function WorldDetailPage() {
     e.preventDefault();
     if (!seedFile) return;
     setIsUploading(true);
+    setUploadSuccess(false);
     try {
       await api.uploadSeedMaterial(worldId, seedFile);
-      alert('Seed material uploaded and is processing!');
       setSeedFile(null);
+      setUploadSuccess(true);
+      // Clear the file input value visually
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      setTimeout(() => setUploadSuccess(false), 5000);
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -164,7 +170,10 @@ export default function WorldDetailPage() {
                 <input 
                   type="file" 
                   id="file-upload"
-                  onChange={(e) => setSeedFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setSeedFile(file);
+                  }}
                   className="hidden"
                 />
                 <label 
