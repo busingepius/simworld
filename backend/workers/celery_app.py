@@ -19,9 +19,4 @@ celery.conf.update(
     task_track_started=True,
     task_time_limit=3600, # 1 hour max
     worker_concurrency=4, # Adjust based on instance size
-    task_routes={
-        "workers.ingest.*": {"queue": "ingestion"},
-        "workers.simulation.*": {"queue": "simulation"},
-        "workers.report.*": {"queue": "reporting"}
-    }
 )

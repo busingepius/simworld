@@ -76,7 +76,7 @@ npm install
 npm run dev
 ```
 
-_(The frontend is now running at `http://localhost:3001`)_
+_(The frontend is now running at `http://localhost:3001/login`)_
 
 ---
 
