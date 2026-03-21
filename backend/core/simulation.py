@@ -1,14 +1,21 @@
 import uuid
-import json
 import asyncio
 from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, Field
 
-from core.llm_client import complete
+from core.llm_client import complete, complete_structured
 from core.logging import get_logger
 from core.exceptions import SimWorldError, SimulationLimitExceededError
 from models.agent_persona import AgentPersona
 
 logger = get_logger(__name__)
+
+
+class SimulationAnalysis(BaseModel):
+    opinion_distributions: Dict[str, Any] = Field(..., description="Map of topics/stances to percentage or sentiment scores across agents")
+    coalitions: Dict[str, Any] = Field(..., description="Map of coalition names to the agents or groups that form them")
+    trending_topics: Dict[str, Any] = Field(..., description="Map of topic names to relevance scores or frequency counts")
+
 
 class SimulationStateOutput:
     """Represents the outcome of a simulation run."""
@@ -125,48 +132,24 @@ async def _analyze_simulation_outcome(simulation_log: List[str], agents: List[Ag
     Analyzes the raw log using the LLM to extract structured distributions and coalitions.
     """
     raw_log = "\n".join(simulation_log)
-    
+
     system_prompt = (
         "You are an analytical engine reviewing a social simulation log. "
         "Extract the prevailing opinion distributions, emerging coalitions between actors, "
-        "and the trending topics discussed. Output as raw JSON with keys: "
-        "'opinion_distributions', 'coalitions', 'trending_topics'."
+        "and the trending topics discussed."
     )
-    
-    # We ask the LLM to synthesize the unstructured log into the structured state
-    try:
-        analysis_json = await complete(
-            prompt=f"SIMULATION LOG:\n{raw_log}",
-            system=system_prompt,
-            temperature=0.0,
-            context_id=context_id
-        )
-        
-        # Clean potential markdown
-        clean_json = analysis_json.strip()
-        if clean_json.startswith("```json"):
-            clean_json = clean_json[7:]
-        elif clean_json.startswith("```"):
-            clean_json = clean_json[3:]
-        if clean_json.endswith("```"):
-            clean_json = clean_json[:-3]
-            
-        data = json.loads(clean_json.strip())
-        
-        return SimulationStateOutput(
-            run_id=uuid.uuid4(), # Placeholder, overwritten by caller
-            opinion_distributions=data.get("opinion_distributions", {}),
-            coalitions=data.get("coalitions", {}),
-            trending_topics=data.get("trending_topics", {}),
-            raw_log=raw_log
-        )
-    except Exception as e:
-        logger.warning("simulation_analysis_failed_fallback", error=str(e), context_id=context_id)
-        # Fallback if parsing fails
-        return SimulationStateOutput(
-            run_id=uuid.uuid4(),
-            opinion_distributions={"error": "Analysis parsing failed"},
-            coalitions={},
-            trending_topics={"topics": ["Unknown"]},
-            raw_log=raw_log
-        )
+
+    analysis = await complete_structured(
+        prompt=f"SIMULATION LOG:\n{raw_log}",
+        response_schema=SimulationAnalysis,
+        system=system_prompt,
+        context_id=context_id,
+    )
+
+    return SimulationStateOutput(
+        run_id=uuid.uuid4(),  # Placeholder, overwritten by caller
+        opinion_distributions=analysis.opinion_distributions,
+        coalitions=analysis.coalitions,
+        trending_topics=analysis.trending_topics,
+        raw_log=raw_log,
+    )

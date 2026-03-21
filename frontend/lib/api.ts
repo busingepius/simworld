@@ -92,6 +92,12 @@ export const api = {
     });
   },
 
+  generateSeedMaterial: (worldId: string, prompt: string) =>
+    fetchApi<{ status: string; material_id: string; preview: string }>(`/worlds/${worldId}/seed/generate`, {
+      method: 'POST',
+      body: JSON.stringify({ prompt }),
+    }),
+
   // --- Agents ---
   listAgents: (worldId: string) => 
     fetchApi<AgentPersonaResponse[]>(`/worlds/${worldId}/agents`),
