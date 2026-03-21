@@ -34,8 +34,24 @@ export default function WorldDetailPage() {
 
   useEffect(() => {
     fetchData();
-    // In a real app we'd poll or use websockets here
   }, [worldId]);
+
+  // Poll every 4s while there is any pending work:
+  // - simulation is queued/running
+  // - simulation just completed but no report has appeared yet
+  // - agents are being generated
+  useEffect(() => {
+    const hasActiveSimulation = simulations.some(
+      s => s.status === 'queued' || s.status === 'running'
+    );
+    const awaitingReport =
+      simulations.some(s => s.status === 'complete') && reports.length === 0;
+
+    if (!isGenerating && !hasActiveSimulation && !awaitingReport) return;
+
+    const interval = setInterval(fetchData, 4000);
+    return () => clearInterval(interval);
+  }, [simulations, reports, isGenerating]);
 
   const fetchData = async () => {
     try {
