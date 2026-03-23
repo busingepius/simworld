@@ -16,3 +16,4 @@ class Report(TenantBase):
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     sections: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    motif_scene: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=True)

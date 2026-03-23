@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { WorldResponse, AgentPersonaResponse, SimulationRunResponse, ReportResponse } from '@/lib/types';
-import {
-  ArrowLeftIcon,
-  CloudArrowUpIcon,
-  CpuChipIcon,
+import { 
+  ArrowLeftIcon, 
+  CloudArrowUpIcon, 
+  CpuChipIcon, 
   PlayIcon,
   DocumentChartBarIcon,
   UserGroupIcon,
@@ -15,6 +15,7 @@ import {
   BeakerIcon,
   ChartBarIcon,
   SparklesIcon,
+  FilmIcon
 } from '@heroicons/react/24/outline';
 
 export default function WorldDetailPage() {
@@ -439,13 +440,27 @@ export default function WorldDetailPage() {
                     <ChartBarIcon className="w-5 h-5 text-indigo-500" />
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">Confidence Score</span>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
-                    report.confidence_score > 0.8 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                    report.confidence_score > 0.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                  }`}>
-                    {(report.confidence_score * 100).toFixed(1)}%
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {report.motif_scene && (
+                      <button 
+                        onClick={() => {
+                          localStorage.setItem('motif_import_scene', JSON.stringify(report.motif_scene));
+                          window.open('http://localhost:3003', '_blank'); // Assuming motif runs on 3003
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 transition-colors border border-indigo-200 dark:border-indigo-800/50"
+                      >
+                        <FilmIcon className="w-3.5 h-3.5" />
+                        Visualize in Motif
+                      </button>
+                    )}
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
+                      report.confidence_score > 0.8 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                      report.confidence_score > 0.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                      {(report.confidence_score * 100).toFixed(1)}%
+                    </span>
+                  </div>
                 </div>
                 
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4">

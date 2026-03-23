@@ -17,6 +17,7 @@ class GeneratedReport(BaseModel):
     summary: str = Field(..., description="A high-level executive summary of the simulation outcome")
     sections: List[ReportSection] = Field(..., description="Detailed analytical sections")
     confidence_score: float = Field(..., description="Confidence score of the prediction/analysis from 0.0 to 1.0")
+    motif_scene: Optional[Dict[str, Any]] = Field(None, description="A valid Motif Editor JSON scene illustrating the core events of the simulation")
 
 async def generate_report_from_state(
     run_id: uuid.UUID,
@@ -46,10 +47,13 @@ async def generate_report_from_state(
         """
         
         system_prompt = (
-            "You are an expert geopolitical and social dynamics analyst. "
+            "You are an expert geopolitical and social dynamics analyst, as well as a master visual director. "
             "Your task is to review the data from a multi-agent simulation and generate a comprehensive, "
             "structured prediction report. Your analysis must cover the prevailing opinions, "
-            "emerging coalitions, and potential future trajectories based on the simulation state."
+            "emerging coalitions, and potential future trajectories based on the simulation state. "
+            "Additionally, you must output a valid 'motif_scene' JSON object representing a 5 to 10 second animation "
+            "that illustrates the key dynamic or conflict from the simulation. Use shapes, text, and keyframed movements "
+            "to visually tell the story of what happened."
         )
         
         prompt = (

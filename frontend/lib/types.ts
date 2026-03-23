@@ -99,6 +99,7 @@ export interface ReportBase {
   summary: string;
   sections: ReportSection[];
   confidence_score: number;
+  motif_scene?: any;
 }
 
 export interface ReportResponse extends ReportBase {

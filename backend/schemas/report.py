@@ -11,6 +11,7 @@ class ReportBase(BaseModel):
     summary: str
     sections: List[ReportSectionSchema]
     confidence_score: float
+    motif_scene: Any = None
 
 class ReportResponse(ReportBase):
     id: uuid.UUID

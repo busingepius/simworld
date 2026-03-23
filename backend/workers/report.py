@@ -37,7 +37,8 @@ async def _process_report(run_id_str: str, state_id_str: str):
                 run_id=run_id,
                 summary=generated_report.summary,
                 sections=[section.model_dump() for section in generated_report.sections],
-                confidence_score=generated_report.confidence_score
+                confidence_score=generated_report.confidence_score,
+                motif_scene=generated_report.motif_scene
             )
             session.add(db_report)
             await session.commit()
